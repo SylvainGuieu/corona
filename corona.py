@@ -86,7 +86,7 @@ def iter_rows(data):
 def dates2ticks(dates, step=None):
     if step is None:
         amp = (max(dates) - min(dates)).days
-        step = amp//10
+        step = max(1, amp//10)
         
     ticks = []
     pos_dates = []
