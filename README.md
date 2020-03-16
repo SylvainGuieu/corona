@@ -15,14 +15,14 @@ Or simply copy `corona.py` in python directory (matplotlib and pandas modules ne
 ## Load data 
 
 ```python
-import corona as cr
-confirmed, death, recoverd = cr.load_data()
+import corona as crn
+confirmed, death, recoverd = crn.load_data()
 ```
 
 ## Select data
 
 ```python
-confirmed_ue = cr.get_subdata(confirmed, countries=["France", "Italy", "Germany", "Spain"], date_min="2020-03-01")
+confirmed_ue = crn.get_subdata(confirmed, countries=["France", "Italy", "Germany", "Spain"], date_min="2020-03-01")
 print(confirmed_ue)
 ```
 
