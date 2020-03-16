@@ -38,10 +38,21 @@ Province/State Country/Region      Lat     Long  3/2/20  3/3/20  3/4/20  3/5/20 
 
 ```python 
 crn.plot_data(confirmed_ue , ylabel="Confirmed")
+crn.plt.show()
+```
+![](img/confirmed.png)
+
+
+```python
+crn.plot_data(confirmed_ue , ylabel="Confirmed", log=True)
+crn.plt.show()
+```
+![](img/confirmed_log.png)
+
+
+```python
 crn.plot_proportion(death_ue, confirmed_ue, ylabel="Death/Confirmed %")
 crn.plt.show()
 ```
-
-![](img/confirmed.png)
 ![](img/death_ratio.png)
 
