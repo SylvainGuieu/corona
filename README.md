@@ -22,7 +22,10 @@ confirmed, death, recoverd = crn.load_data()
 ## Select data
 
 ```python
-confirmed_ue = crn.get_subdata(confirmed, countries=["France", "Italy", "Germany", "Spain"], date_min="2020-03-01")
+request_ue = dict(countries=["France", "Italy", "Germany", "Spain"], date_min="2020-03-01") 
+confirmed_ue = crn.get_subdata(confirmed, **request_ue)
+death_ue = crn.get_subdata(death, **request_ue)
+
 print(confirmed_ue)
 ```
 
