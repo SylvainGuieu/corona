@@ -1,9 +1,25 @@
+
 Tool to handle Corona virus daily report data from the GitHub of Johns Hopkins University Center for Systems Science and Engineering : [https://github.com/CSSEGISandData/COVID-19](https://github.com/CSSEGISandData/COVID-19)
+
+## install 
+
+```
+> git clone https://github.com/SylvainGuieu/corona.git
+> cd corona 
+> python setup.py install
+```
+
+Or simply copy `corona.py` in python directory (matplotlib and pandas modules needed)
+
+
+## Load data 
 
 ```python
 import corona as cr
 confirmed, death, recoverd = cr.load_data()
 ```
+
+## Select data
 
 ```python
 confirmed_ue = cr.get_subdata(confirmed, countries=["France", "Italy", "Germany", "Spain"], date_min="2020-03-01")
@@ -18,4 +34,10 @@ Province/State Country/Region      Lat     Long  3/2/20  3/3/20  3/4/20  3/5/20 
 18             NaN          Spain  40.0000  -4.0000     120     165     222     259     400     500     673    1073     1695     2277     2277     5232     6391
 ```
 
+## Plot
 
+```python 
+crn.plot_data(confirmed_ue , ylabel="Confirmed")
+crn.plot_proportion(death_ue, confirmed_ue, ylabel="Death/Confirmed %")
+crn.plt.show()
+```
