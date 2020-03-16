@@ -41,3 +41,7 @@ crn.plot_data(confirmed_ue , ylabel="Confirmed")
 crn.plot_proportion(death_ue, confirmed_ue, ylabel="Death/Confirmed %")
 crn.plt.show()
 ```
+
+![][img/confirmed.png]
+![][img/death_ratio.png]
+
