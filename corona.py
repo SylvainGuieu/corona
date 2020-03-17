@@ -56,7 +56,7 @@ def get_subdata(data, countries=None, date_min=date(1970,1,1), date_max=date(205
         data = data.iloc[find_indexes(data, countries)]
     cols = list(data.columns[:4])
     d = get_dates(data)        
-    t = (d>date_min) & (d<date_max)
+    t = (d>=date_min) & (d<=date_max)
     cols.extend(data.columns[4:][t])
     return data[cols]
     
