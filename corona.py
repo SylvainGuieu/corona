@@ -102,40 +102,147 @@ def dates2ticks(dates, step=None):
         first = False
     return pos_dates, ticks    
 
-def plot_data(data, title="", log=False, ylabel=""):
+def efit_data(data):
+    dates = get_dates(data)
+    mindate = min(dates)
+    days =  [(d - mindate).days for d in dates]
+    results = {}
+    for header, cdata in iter_rows(data):
+        country = header[1] 
+        y = np.log(cdata.astype(float))
+        pol = np.polyfit(days,y,1)
+        T = 1./pol[0]
+        A = np.exp(pol[1])     
+        results[country] = {
+        'country':country,
+        'T':T, 'A':A, 
+        'rep':'$%.2f \exp^{t/%.2f}$'%(A,T), 
+        'type':'exp',
+        'start_date':mindate,
+        'end_date':max(dates),
+        'label': '%s T=%.2f'%(country, T)
+        }
+    return DataFrame.from_dict(results, orient='index')
+
+def efit_model(dates, A, T, start_date=None):
+    if start_date is None:
+        start_date = min(dates)
+    days = np.array([(d-start_date).days for d in dates])
+    return A*np.exp(days/T)
+
+def sfit_data(data):
+    """ fit A.2^(t/T) with t in days for each data rows 
+    
+    result is returned 
+    """
+    dates = get_dates(data)
+    mindate = min(dates)
+    days =  [(d - mindate).days for d in dates]
+    results = {}    
+    for header, cdata in iter_rows(data):
+        country = header[1]        
+        y = np.log2(cdata.astype(float))
+        pol = np.polyfit(days,y,1)
+        T = 1./pol[0]
+        A = 2**pol[1]
+        results[country] = {
+        'country':country,
+        'T':T, 'A':A, 'rep':'$%.2f 2^{t/%.2f}$'%(A,T), 
+        'type':'2', 
+        'start_date':mindate, 
+        'end_date':max(dates),
+        'label': '%s T=%.2f'%(country, T)
+        }        
+    return DataFrame.from_dict(results, orient='index')
+    
+def sfit_model(dates, A, T, start_date=None):        
+    if start_date is None:
+        start_date = min(dates)
+    days = np.array([(d-start_date).days for d in dates])
+    return A*2**(days/T)
+
+def fit_model(dates, r):    
+    A, T, start_date, mtype = (r[k] for k in ['A','T','start_date', 'type'])
+    if mtype is '2':
+        return sfit_model(dates, A, T, start_date)
+    if mtype is 'exp':
+        return efit_model(dates, A, T, start_date)
+    raise ValueError('Bug unknown fit type')
+
+def set_xticks(ax, ticks, labels):
+    
+    locs = ax.set_xticks(ticks)
+    labels = ax.set_xticklabels(labels, **kwargs)
+    for l in labels:
+        l.update(kwargs)
+
+
+def plot_data(data, title="", log=False, ylabel="", fit=None, ax=None):
     """ Plot data for each countries """
     plt.figure()
-    ax = plt.axes()
+    if ax is None:
+        ax = plt.axes()
     
     dates = get_dates(data)
     
+    colors = {}
+    linestyles = {}
+    lsts = ["dotted", "dashed", "dashdot", "losely dotted", "losely dashed", "losely dashdotted"][::-1]
     for header, sdata in iter_rows(data):                
         ax.plot(dates, sdata, label=header[1])
+        colors[header[1]] = ax.lines[-1].get_color()
+        linestyles[header[1]] = list(lsts)
+    
+    if fit is not None:
+        if isinstance(fit, DataFrame):
+            iterator = fit.iterrows
+        else:
+            iterator = fit.items    
+        for country, r in iterator():
+            y = fit_model(dates, r)
+            
+            lst = linestyles.get(country, ['dotted'])
+            if not lst:
+                lst = "dotted"
+            else:
+                lst = lst.pop()              
+            ax.plot(dates, y,  color=colors.get(country, None), linestyle=lst, label="%s T=%.2f"%(country, r['T']))
         
     ax.legend()
-    ax.set_xlabel("date")
-    plt.xticks(rotation=75)
-    plt.xticks(*dates2ticks(dates))
+    ax.set_xlabel("date")    
+    ax.xaxis.set_tick_params(rotation=75)
+    
+    ticks, labels = dates2ticks(dates)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
+    
     ax.set_ylabel(ylabel)
     ax.set_title(title)
     if log:
-        plt.yscale("log")
+        ax.set_yscale('log')        
+    return ax
         
-def plot_proportion(numerator, denominator, title="", ylabel=""):
+def plot_proportion(numerator, denominator, title="", ylabel="", ax=None):
     
     plt.figure()
-    ax = plt.axes()
+    if ax is None:
+        ax = plt.axes()
     
     dates = get_dates(numerator)
     
     for (header, n), (_, d) in zip(iter_rows(numerator), iter_rows(denominator)):                
         ax.plot(dates, n/d*100, label=header[1])
     ax.legend()
-    ax.set_xlabel("date")
-    plt.xticks(rotation=75)
-    plt.xticks(*dates2ticks(dates))
+    ax.set_xlabel("date") 
+       
+    ticks, labels = dates2ticks(dates)
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(labels)
+    ax.xaxis.set_tick_params(rotation=75)
+    
     
     ax.set_ylabel(ylabel)
+    return ax
     
 if __name__=="__main__":
     rec1 = dict(countries = ["France", "Italy", "Spain", "Germany", "Japan"],
@@ -145,8 +252,9 @@ if __name__=="__main__":
     confirmed, death, recovered = load_data()
     c1, d1, r1 = (get_subdata(data, **rec1) for data in [confirmed, death, recovered])
     
-    plot_data(c1, title="Confirmed", log=True, ylabel="# Confirmed")
+    plot_data(c1, title="Confirmed", log=True, ylabel="# Confirmed", fit=efit_data(c1))
     plot_proportion(d1, c1, ylabel="Death/Confirmed %")
     #plot_case(subdata(depth, ["France", "Italy", "Spain", "Japan"]), title="Depth")
     #plot_case(subdata(depth, ["France", "Italy", "Spain", "Japan"]), title="Recovered")
     plt.show()
+    print(efit_data(c1))
