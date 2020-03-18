@@ -11,6 +11,7 @@ Tool to handle Corona virus daily report data from the GitHub of Johns Hopkins U
 
 Or simply copy `corona.py` in python directory (matplotlib and pandas modules needed)
 
+Best to see the [notebook](./corona.ipynb) for examples. 
 
 ## Load data 
 
