@@ -6,8 +6,9 @@ import sys
 #from distutils.core import setup # dependency does not works 
 from setuptools import setup
 
-name = "corona"
-version='0.1.dev' # https://www.python.org/dev/peps/pep-0440/
+name = "coronapy"
+version='0.1' # https://www.python.org/dev/peps/pep-0440/
+url = "https://github.com/SylvainGuieu/corona"
 author='Sylvain Guieu'
 author_email='sylvain.guieu@univ-grenoble-alpes.fr'
 install_requires = ['pandas', 'matplotlib']
@@ -42,7 +43,7 @@ rootdir = os.path.abspath(os.path.dirname(__file__))
 
 # Build a list of all project modules
 packages = []
-py_modules =["corona"]
+py_modules =["coronapy"]
 
 #if os.path.exists(name+".py"):
 #    packages.append(name+".py")
@@ -99,9 +100,15 @@ for path in ["README.md", "readme.md", "readme.txt"]:
 else:
     readme = ""
 
+long_description = """
+Tools to load and annylise the Corona virus daily report data from the GitHub of Johns Hopkins University Center for Systems Science and Engineering
+
+See home page [home](https://github.com/SylvainGuieu/corona)
+"""
 
 setup(
     name=name,
+    url=url, 
     version=version,
     author=author,
     author_email=author_email,
@@ -110,7 +117,7 @@ setup(
     scripts=scripts,
     data_files=data_files,
     license=license,
-    long_description=readme,
+    long_description=long_description,
     long_description_content_type=long_description_content_type,
     install_requires=install_requires, 
     dependency_links=dependency_links,   
