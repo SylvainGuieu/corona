@@ -7,7 +7,7 @@ import sys
 from setuptools import setup
 
 name = "coronapy"
-version='0.1' # https://www.python.org/dev/peps/pep-0440/
+version='0.1.1' # https://www.python.org/dev/peps/pep-0440/
 url = "https://github.com/SylvainGuieu/corona"
 author='Sylvain Guieu'
 author_email='sylvain.guieu@univ-grenoble-alpes.fr'
