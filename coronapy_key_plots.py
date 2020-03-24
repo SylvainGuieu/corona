@@ -26,6 +26,12 @@ def save(name, fig=None):
 
 
 confirmed, death = load_data(('confirmed', 'death'))
+patch = [
+    ('France', '2020-03-17', 173),
+    ('France', '2020-03-18', 244),
+    ('France', '2020-03-19', 372)
+]
+death.patch(patch)
 
 names1 = ['France', 'Italy', 'Spain', 'Hubei']
 names2 = ['France', 'Italy', 'Spain']
@@ -60,7 +66,7 @@ fit_result = subset.subset(start=-10).fit('2') # fit the last 10 days
 
 axes = subset.plot()
 fit_result.plot_model(axes=axes)
-axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Confirmed = A $2^{t/T}$")
+axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
 save('death_fit', axes.figure)
 
 
