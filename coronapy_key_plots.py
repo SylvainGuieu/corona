@@ -67,6 +67,7 @@ fit_result = subset.subset(start=-10).fit('2') # fit the last 10 days
 axes = subset.plot()
 fit_result.plot_model(("2020-03-15", "2020-04-01"), axes=axes)
 axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
+axes.grid( which='both')
 save('death_fit', axes.figure)
 
 plt.figure()
