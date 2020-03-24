@@ -5,6 +5,12 @@ The best way to have an overview is to check the [notebook](./corona.ipynb)
 
 ## install 
 
+Using pip
+
+```
+>>> pip install coronapy 
+```
+
 ```
 > git clone https://github.com/SylvainGuieu/corona.git
 > cd corona 
