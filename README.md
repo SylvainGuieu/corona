@@ -36,6 +36,8 @@ Last Updates : 2020-03-24
 
 ![](./img/death_fit.png)
 
+![](./img/death_fit_days.png)
+
 ![](./img/confirmed_T.png)
 
 ![](./img/death_T.png)
