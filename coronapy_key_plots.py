@@ -69,6 +69,21 @@ fit_result.plot_model(("2020-03-15", "2020-04-01"), axes=axes)
 axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
 save('death_fit', axes.figure)
 
+plt.figure()
+subset = death.subset(names1)
+s, e, c = 6,13, 20
+origin = death.when_case_exceed(c)
+subset = subset.get_day_indexed(origin).subset(start=0, end=30)
+
+fit_result = subset.subset(start=s, end=e).fit('2') # fit the last 10 days
+axes = subset.plot()
+fit_result.plot_model( (s, 25), axes=axes)
+axes.set(yscale='log', xlabel="Days since %s cases"%c, ylabel="Death", title = "Death = A $2^{t/T}$ Fit between day %s and day %s since %s cases"%(s,e,c))
+axes.grid( which='both')
+[axes.axvline(x, color='k', linestyle=":") for x in (s,e)]
+save('death_fit_days', axes.figure)
+
+
 
 plt.figure()
 subset = confirmed.subset(names1)
