@@ -100,15 +100,15 @@ def patch_data(data, patch):
         for name, d in patch.items():            
             for date, value in d.items():
                 date = _parse_date(date)
-                data[date].loc[name] = value
+                data.loc[name, date] = value
     elif isinstance(patch, DataFrame):
         for _, p in patch.iterrows():
             date = _parse_date(p['date'])
-            data[date].loc[p['name']] = p['value']
+            data.loc[p['name'], date] = p['value']
     else:
         for name, date, value in patch:
             date = _parse_date(date)
-            data[date].loc[name] = value
+            data.loc[name, date] = value
 
 def today(days=0):
     """ return the today date or shifted be an optional number of days 
