@@ -83,7 +83,7 @@ def load_data(names=("confirmed", "death", "recovered"), urls=None):
         return [_load_one_data(urls[dt]) for dt in names]    
 
 
-def patch_data(data, patch):
+def patch(data, patch):
     """ patch data with patch dataFrame or dict 
     
     If a data frame must have the columns 'name' 'date' and 'value'
@@ -111,6 +111,8 @@ def patch_data(data, patch):
         for name, date, value in patch:
             date = _parse_date(date)
             data.loc[name, date] = value
+# legacy 
+patch_data = patch
 
 def today(days=0):
     """ return the today date or shifted be an optional number of days 
@@ -120,7 +122,7 @@ def today(days=0):
     """
     return date.today() + timedelta(days)
 
-def get_data_subset(data, names=None, state=None, country=None, start=None, end=None, ndays=None):
+def subset(data, names=None, state=None, country=None, start=None, end=None, ndays=None):
     """ Return a new dataset with selected rows and date boundaries 
     
     Inputs
@@ -160,9 +162,9 @@ def get_data_subset(data, names=None, state=None, country=None, start=None, end=
       
     Exemple
     -------
-    >>> get_data_subset(confirmed, ['France', 'Italy'], start="2020-03-01")
+    >>> subset(confirmed, ['France', 'Italy'], start="2020-03-01")
     # last 10 days:
-    >>> get_data_subset(confirmed, ['France', 'Italy'], start=-10)
+    >>> subset(confirmed, ['France', 'Italy'], start=-10)
     
     """
     
@@ -174,6 +176,8 @@ def get_data_subset(data, names=None, state=None, country=None, start=None, end=
         data = _subset_by_countries(data, country)
         
     return _get_subdata_range(data, start=start, end=end, ndays=ndays)
+# legacy
+get_data_subset = subset
 
 def get_cases(data):
     """ Return only the time serie data part from the DataFrame """
@@ -181,6 +185,7 @@ def get_cases(data):
     if isinstance(data, Series):
         return data[DSLICE]
     return data[data.columns[DSLICE]]
+
 
 def get_header(data):
     """ Return only the header part from the DataFrame 
@@ -239,7 +244,7 @@ def is_model(data):
     """ True if time sery data was created by a model """
     return ('T' in data) and ('start' in data)
 
-def index_by_days(data, day_zero=None, days=None, ):
+def get_day_indexed(data, day_zero=None, days=None, ):
     """ Reindex data indexed by dates to day numbers 
     
     Input
@@ -275,7 +280,7 @@ def index_by_days(data, day_zero=None, days=None, ):
     
     lstdata = [] 
     for name, row in data.iterrows():
-        lstdata.append(index_by_days(row, days=days))
+        lstdata.append(get_day_indexed(row, days=days))
     return concatenate(lstdata)    
         
 
@@ -295,7 +300,7 @@ def get_days(data, day_zero=None, dates=None):
     
     See Also
     --------
-    index_by_days     
+    get_day_indexed     
     """
     day_zero = _parse_date_arg(day_zero)
     if dates is None:
@@ -378,7 +383,7 @@ def date_range(start, end, step=1):
 
 
 
-def gen_intervals(data, start=None, end=None,  window=None, step=1, nwindows=None,  mindays=1):
+def intervals(data, start=None, end=None,  window=None, step=1, nwindows=None,  mindays=1):
     """ generate intervals from data 
     
     A slidding days window define the intervals from start to end
@@ -420,7 +425,7 @@ def gen_intervals(data, start=None, end=None,  window=None, step=1, nwindows=Non
             s, e = _compute_date_range(row, start, end)
             me = max( get_dates(row) )
             if dx:
-                x = get_cases(row, get_data_subset(start=start,end=end))
+                x = get_cases(row, subset(start=start,end=end))
                 days = len(np.where(x==x)[0])
                 #days = (min(me,end)-start) + 1
             else:
@@ -447,7 +452,7 @@ def gen_intervals(data, start=None, end=None,  window=None, step=1, nwindows=Non
                 ss,ee = _compute_date_range(rowdata, d, ndays=w)
                 me = max( get_dates(rowdata) )
                 if dx:
-                    x = get_cases(get_data_subset(rowdata, start=ss,end=ee))
+                    x = get_cases(subset(rowdata, start=ss,end=ee))
                     days = len(np.where(x==x)[0])  
                     #days = (min(me,ee)-ss) +1       
                 else:           
@@ -460,8 +465,10 @@ def gen_intervals(data, start=None, end=None,  window=None, step=1, nwindows=Non
                 else: 
                     d = d + timedelta(days=step)
     return DataFrame(intervals, columns=['name', 'start', 'end', 'days'])    
+#legacy 
+gen_intervals = intervals
 
-def split_cases(data, intervals):
+def split(data, intervals):
     """ split data into a list of Series with given date intervals 
     
     Inputs
@@ -475,7 +482,7 @@ def split_cases(data, intervals):
     ------
     list : list containing Series
     
-    see also gen_intervals
+    see also intervals
     """
     output = []    
     intervals = _parse_intervals_arg(intervals)
@@ -485,12 +492,13 @@ def split_cases(data, intervals):
         it = intervals[intervals['name']==c]
         if not len(it): continue
         iterator = [(None,it)] if isinstance(it, Series) else it.iterrows()        
-        output.extend((get_data_subset(rowdata, start=i['start'], end=i['end']) for _,i in iterator))
+        output.extend((subset(rowdata, start=i['start'], end=i['end']) for _,i in iterator))
    
     return output
+#legacy 
+split_cases = split
 
-
-def fit_cases(data, ftype='2'):
+def fit(data, ftype='2'):
     """ fit a time series cases
     
     Input
@@ -553,22 +561,24 @@ def fit_cases(data, ftype='2'):
             ]
             )        
         return FitDataFrame(results, columns=list(data.columns[hslice])+columns, index=data.index)
+#legacy 
+fit_cases = fit
 
 def fit_severals(data_list, ftype='2'):
     """fit a list of Series and return result in a single DataFrame 
     
-    see fit_cases
+    see fit
     """
-    result = [fit_cases(data, ftype) for data in data_list]
+    result = [fit(data, ftype) for data in data_list]
     return concatenate(result)
 
 def fit_intervals(data, intervals, ftype='2'):
     """fit the data from intervals and  return result in a single DataFrame 
     
-    see fit_cases for the fits 
-    and gen_intervals and split_cases function for the interval argument 
+    see fit for the fits 
+    and intervals and split function for the interval argument 
     """
-    data_list = split_cases(data, intervals)
+    data_list = split(data, intervals)
     return fit_severals(data_list, ftype)
 
 
@@ -577,7 +587,7 @@ def make_model(fit_result, dates=None):
     
     Inputs
     ------
-    fit_result : Series or DataFrame like as returned by fit_cases
+    fit_result : Series or DataFrame like as returned by fit
     dates: optional, None, 2xtuple of min,max range, list of dates
             default is None: min,max is taken from 'strat', 'end' columns of fit_result
     
@@ -647,7 +657,7 @@ def clean_date_xticks(dates=None, axes=None, **kwargs):
     for l in labels:
         l.update(kwargs)
 
-def plot_data(data, log=False, axes=None, style=None, styles=None, fit_result=None, **kwargs):
+def plot_cases(data, log=False, axes=None, style=None, styles=None, fit_result=None, **kwargs):
     """ Plot data cases for each data rows 
     Input
     -----
@@ -688,7 +698,7 @@ def plot_data(data, log=False, axes=None, style=None, styles=None, fit_result=No
         _update_styles(axes, name, styles)        
         
     if fit_result is not None:
-        plot_data(make_model(fit_result), log=log, style=style, styles=styles, axes=axes)
+        plot_cases(make_model(fit_result), log=log, style=style, styles=styles, axes=axes)
     
     axes.legend()
     # make nicer ticks when date         
@@ -700,9 +710,9 @@ def plot_model(fit_result, dates=None, **kwargs):
     
     plot_model(fit_result, dates, **kwargs)
     is equivalent to 
-    plot_data(make_model(fit_result, dates), **kwargs)
+    plot_cases(make_model(fit_result, dates), **kwargs)
     """
-    return plot_data(make_model(fit_result, dates), **kwargs)
+    return plot_cases(make_model(fit_result, dates), **kwargs)
     
     
 def plot_proportion(numerator, denominator, scale=1.0, log=False, axes=None, style=None, styles=None, **kwargs):
@@ -756,7 +766,7 @@ def plot_fit_result(result, datekey="end", ykey="T", axes=None, styles=None, sty
     
     Input
     -----
-    result : Series or DataFrame as returned by fit_cases
+    result : Series or DataFrame as returned by fit
     datekey : optional, 'start', 'end' (default), 'middle' 
               which date to plot on xaxis the start date of the fit end or middle 
     ykey : optional, str, The column to lot in y default is 'T'
@@ -828,7 +838,7 @@ class _DataSet(DataFrame):
     
     
     def subset(self, *args, **kwargs):
-        return get_data_subset(self, *args, **kwargs)
+        return subset(self, *args, **kwargs)
         
 class _DataRow(Series):
     @property
@@ -840,7 +850,7 @@ class _DataRow(Series):
         return _DataSet
     
     def subset(self, *args, **kwargs):
-        return get_data_subset(self, *args, **kwargs)
+        return subset(self, *args, **kwargs)
     
     
 class TimeFrame(_DataSet):
@@ -926,7 +936,7 @@ class TimeFrame(_DataSet):
           where columns are day numbers instead of dates
         
         """
-        return index_by_days(self, day_zero=day_zero, days=days)
+        return get_day_indexed(self, day_zero=day_zero, days=days)
     
     def is_day_indexed(self):
         """ True if the TimeFrame data if indexed by day number instead of dates """
@@ -947,7 +957,7 @@ class TimeFrame(_DataSet):
         
         see also intervals method 
         """
-        return split_cases(self, intervals)
+        return split(self, intervals)
     
     def intervals(self, *args, **kwargs):
         """ generate intervals 
@@ -970,7 +980,8 @@ class TimeFrame(_DataSet):
         ------
         DataFrame : with columns 'start' en 'end' to define intervals 
         """
-        return gen_intervals(self, *args, **kwargs)
+        return intervals(self, *args, **kwargs)
+    
     
     def fit_intervals(self, intervals, ftype='2'):
         """fit the data from intervals and  return result in a single DataFrame 
@@ -996,7 +1007,7 @@ class TimeFrame(_DataSet):
         FitDataFrame 
             The output fit result data contains 'T', 'A' 'ftype' 'start' and 'end' columns 
         """
-        return fit_cases(self, ftype)
+        return fit(self, ftype)
     
     def plot(self, *args, **kwargs):
         """ Plot cases for each rows 
@@ -1018,7 +1029,7 @@ class TimeFrame(_DataSet):
         ------
         axes : matplotlib axes
         """
-        return plot_data(self, *args, **kwargs)
+        return plot_cases(self, *args, **kwargs)
     
     def plot_proportion(self, denominator, *args, **kwargs):
         """ convenient function plot a fraction of self over denominator cases
@@ -1055,8 +1066,8 @@ class TimeFrame(_DataSet):
         """
         return when_case_exceed(self, n)
         
-    def patch(self, patch):
-        patch_data(self, patch)
+    def patch(self, patch_data):
+        patch(self, patch_data)
     
     
 class TimeSeries(_DataRow):
@@ -1142,7 +1153,7 @@ class TimeSeries(_DataRow):
           indexes are day numbers instead of dates
         
         """
-        return index_by_days(self, day_zero=day_zero, days=days)
+        return get_day_indexed(self, day_zero=day_zero, days=days)
     
     def is_day_indexed(self):
         """ True if the TimeFrame data if indexed by day number instead of dates """
@@ -1163,7 +1174,7 @@ class TimeSeries(_DataRow):
         
         see also intervals method 
         """
-        return split_cases(self, intervals)
+        return split(self, intervals)
     
     def intervals(self, *args, **kwargs):
         """
@@ -1187,7 +1198,7 @@ class TimeSeries(_DataRow):
         ------
         DataFrame : with columns 'start' en 'end' to define intervals 
         """
-        return gen_intervals(self, *args, **kwargs)
+        return intervals(self, *args, **kwargs)
     
     def fit_intervals(self, intervals, ftype='2'):
         """fit the data from intervals and  return result in a single DataFrame 
@@ -1213,7 +1224,7 @@ class TimeSeries(_DataRow):
         FitDataFrame 
             The output fit result data contains 'T', 'A' 'ftype' 'start' and 'end' columns 
         """
-        return fit_cases(self, ftype)
+        return fit(self, ftype)
     
     def plot(self, *args, **kwargs):
         """ Plot cases 
@@ -1235,7 +1246,7 @@ class TimeSeries(_DataRow):
         ------
         axes : matplotlib axes
         """
-        return plot_data(self, *args, **kwargs)
+        return plot_cases(self, *args, **kwargs)
     
     def plot_proportion(self, denominator, *args, **kwargs):
         """ convenient function plot a fraction of self over denominator cases
@@ -1413,7 +1424,15 @@ class FitSeries(_DataRow):
              Time series data like the John H ones
         """
         return make_model(self, dates)
-    
+
+###############################################################################
+#                    ____  ____  _____     ___  _____ _____                   #
+#                   |  _ \|  _ \|_ _\ \   / / \|_   _| ____|                  #
+#                   | |_) | |_) || | \ \ / / _ \ | | |  _|                    #
+#                   |  __/|  _ < | |  \ V / ___ \| | | |___                   #
+#                   |_|   |_| \_\___|  \_/_/   \_\_| |_____|                  #
+#                                                                             #
+###############################################################################    
 
 def _reindex_data(data, data_col=4):
     # reindex to state name or country name if state is NaN
@@ -1810,10 +1829,10 @@ if __name__=="__main__":
     c,d,r = load_data() 
         
     origin = c.when_case_exceed(200)  
-    print( index_by_days(c.loc['France'], day_zero=origin))
+    print( get_day_indexed(c.loc['France'], day_zero=origin))
     
     print(c.loc[['France','Italy','Hubei']].header)
-    print( index_by_days(c.loc[['France','Italy','Hubei']], day_zero=origin))
+    print( get_day_indexed(c.loc[['France','Italy','Hubei']], day_zero=origin))
     
     #print(get_days(c.iloc[154], origin))
     #print(get_days(c.iloc[158:160], origin))
