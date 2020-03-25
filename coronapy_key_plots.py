@@ -11,11 +11,14 @@ if len(sys.argv) > 1:
 else:
     root = "./img"
 
-matplotlib.rcParams['figure.figsize'] = 12, 6
+matplotlib.rcParams['figure.figsize'] = 12, 6          
 styles = {"France":{"color":"blue"}, 
           "Italy":{"color":"green"}, 
           "Spain":{"color":"red"}, 
-          "Germany":{"color":"black"} }
+          "Germany":{"color":"black"}, 
+          "Hubei":{"color":"orange"}, 
+          "US":{"color":"cyan"}
+         }
 set_default_styles(styles) # styles will be default for all graph
 
 def save(name, fig=None):
@@ -33,8 +36,8 @@ patch = [
 ]
 death.patch(patch)
 
-names1 = ['France', 'Italy', 'Spain', 'Hubei']
-names2 = ['France', 'Italy', 'Spain']
+names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US']
+names2 = ['France', 'Italy', 'Spain', 'US']
 
 plt.figure()
 subset = confirmed.subset(names1, start="2020-02-20")

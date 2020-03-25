@@ -8,6 +8,9 @@ from matplotlib.pylab import plt
 from datetime import date, timedelta
 import numpy as np
 
+_min = min 
+_max = max
+
 # default urls for specfic cases
 default_urls = {
 #'confirmed' : 'https://github.com/CSSEGISandData/COVID-19/raw/master/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv',
@@ -18,6 +21,11 @@ default_urls = {
 }
 
 PROVINCE, COUNTRY = "Province/State", "Country/Region"
+STATE, REGION = PROVINCE, COUNTRY
+LAT, LONG = "Lat", "Long"
+
+# type of the columns considered as "data" instead of header
+DATA_COL_TYPE = (date, int, np.int32, np.int64)
 
 ###############################################################################
 #          ____  _   _ ____  _     ___ ____   _____ _   _ _   _  ____         #
@@ -42,12 +50,21 @@ def set_default_styles(styles):
 def concatenate(lst):
     """ Concatenate a list of Series or DataFrame into a DataFrame """
     if not len(lst):
-        return _DataSet()
-    if isinstance(lst[0], Series):
-        constructor = lst[0]._constructor_expanddim
-        return constructor(concat(lst, axis=1, sort=False).T)
-    constructor = lst[0]._constructor
-    return constructor(concat(lst))
+        return _DataSet()    
+        
+    lst2 = []   
+    constructor = None
+    for d in lst:
+        if isinstance(d, Series):
+            d = d.to_frame().T
+        if constructor and d._constructor is not constructor:
+            raise ValueError("Cannot mixt different class of data, use pd.concat instead")
+        else:
+            constructor = d._constructor
+        lst2.append(d)
+    #return constructor(concat(lst, axis=1, sort=False).T)
+    #constructor = lst[0]._constructor
+    return _reordered(constructor(concat(lst2)))
         
 def load_data(names=("confirmed", "death", "recovered"), urls=None):
     """ Load data from Johns Hopkins University GitHub (internet coneeection requiered)
@@ -220,13 +237,13 @@ def when_case_exceed(data, n):
     if isinstance(data, Series):
         ou = np.where( get_cases(data)>= n)[0]
         if not len(ou):
-            return max(dates)+timedelta(1)
+            return _max(dates)+timedelta(1)
     else:
         days = []
         for h, row in _itercases(data):                        
             ou = np.where(row>= n)[0]
             if not len(ou):
-                days.append( list(h)+[max(dates)+timedelta(1)] )
+                days.append( list(h)+[_max(dates)+timedelta(1)] )
             else:
                 days.append( list(h)+[dates[ou[0]]] )
         
@@ -234,7 +251,7 @@ def when_case_exceed(data, n):
         return DataFrame(days, index=data.index, columns=list(data.columns[HSLICE])+[ 'date'])    
                     
     if not len(ou):
-        return min(dates)
+        return _min(dates)
     return dates[ou[0]]
 
 def is_day_indexed(data):
@@ -409,9 +426,9 @@ def intervals(data, start=None, end=None,  window=None, step=1, nwindows=None,  
     indexes = []
                 
     if start is None:
-        start = min(get_dates(data))
+        start = _min(get_dates(data))
     if end is None:
-        end = max(get_dates(data))
+        end = _max(get_dates(data))
     
     if isinstance(data, Series):
         iterator = [(data.name, data)]
@@ -423,13 +440,13 @@ def intervals(data, start=None, end=None,  window=None, step=1, nwindows=None,  
     if window is None and nwindows is None:
         for c,row in iterator:
             s, e = _compute_date_range(row, start, end)
-            me = max( get_dates(row) )
+            me = _max( get_dates(row) )
             if dx:
                 x = get_cases(row, subset(start=start,end=end))
                 days = len(np.where(x==x)[0])
                 #days = (min(me,end)-start) + 1
             else:
-                days = (min(me,end)-start).days + 1
+                days = (_min(me,end)-start).days + 1
             if days>=mindays:                                    
                 intervals.append[(c, start, end, days)]
     else:            
@@ -450,13 +467,13 @@ def intervals(data, start=None, end=None,  window=None, step=1, nwindows=None,  
             i=0
             while (d<=e) and (i<n):
                 ss,ee = _compute_date_range(rowdata, d, ndays=w)
-                me = max( get_dates(rowdata) )
+                me = _max( get_dates(rowdata) )
                 if dx:
                     x = get_cases(subset(rowdata, start=ss,end=ee))
                     days = len(np.where(x==x)[0])  
                     #days = (min(me,ee)-ss) +1       
                 else:           
-                    days = (min(me,ee)-ss).days +1
+                    days = (_min(me,ee)-ss).days +1
                 if days>=mindays:
                     intervals.append([c, ss, ee, days])
                     i+=1
@@ -498,6 +515,111 @@ def split(data, intervals):
 #legacy 
 split_cases = split
 
+def sum(data, name=None, axis=0, **kwargs):
+    """ Sum a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.sum, axis, name, kwargs)
+
+def mean(data, name=None, axis=0, **kwargs):
+    """ mean of a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.mean, axis, name, kwargs)
+
+def median(data, name=None, axis=0, **kwargs):
+    """ median of a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.median, axis, name, kwargs)
+
+def std(data, name=None, axis=0, **kwargs):
+    """ standard deviation of a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.std, axis, name, kwargs)
+
+def minimum(data, name=None, axis=0, **kwargs):
+    """ min of a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.min, axis, name, kwargs)
+
+def maximum(data, name=None, axis=0, **kwargs):
+    """ min of a TimeFrame cases along rows 
+    
+    Inputs
+    ------
+    data : TimeFrame data
+    name : optional, name of the time_series
+           If not given try to guess one from country or state if not mixed
+    axis : optional, axis=0 
+           change only to an other value to have the normal DataFrame behavior
+    
+    Output
+    ------
+    TimeSeries : Series like object 
+    """
+    return _run_operator(data, np.max, axis, name, kwargs)
+
+
+
+
 def fit(data, ftype='2'):
     """ fit a time series cases
     
@@ -523,7 +645,7 @@ def fit(data, ftype='2'):
         fit_repr = '$A \exp^{t/T}$', 'exp'
     
     dates = get_dates(data)
-    mindate = min(dates)
+    mindate = _min(dates)
     if is_day_indexed(data):
         days = dates.astype(np.int64)        
         # days has to be positives
@@ -544,7 +666,7 @@ def fit(data, ftype='2'):
         
         A, T = fit_func(days[t], cdata[t])
         
-        result = list(data[hslice]) + [T, A, fit_repr, ftype, mindate, max(dates),
+        result = list(data[hslice]) + [T, A, fit_repr, ftype, mindate, _max(dates),
                           '%s T=%.2f'%(data.name, T), len(cdata)]
         return FitSeries(result, index=list(data.index[hslice])+columns, name=data.name)
     
@@ -556,7 +678,7 @@ def fit(data, ftype='2'):
             A, T = fit_func(days[t], cdata[t])  
             results.append( list(header) + [        
             T, A, fit_repr, ftype,
-            mindate, max(dates),
+            mindate, _max(dates),
             '%s T=%.2f'%(cdata.name, T), len(cdata)
             ]
             )        
@@ -598,14 +720,14 @@ def make_model(fit_result, dates=None):
     """
     if not isinstance(fit_result, Series):
         # vectorialize the function to DataFrame
-        return concatenate([make_model(r,dates) for _,r in fit_result.iterrows()])
+        return _concatenate([make_model(r,dates) for _,r in fit_result.iterrows()])
     
     if dates is None:
         if isinstance(fit_result, Series):        
             dates  = (fit_result['start'], fit_result['end'])
         else:
             # same range for all the DataFrame
-            dates = (min(fit_result['start']), max(fit_result['end']))
+            dates = (_min(fit_result['start']), _max(fit_result['end']))
     
     if isinstance(dates, tuple):
         mindate, maxdate = dates
@@ -879,6 +1001,10 @@ class TimeFrame(_DataSet):
     plot_proportion(denominator) : plot self over denominator 
     when_case_exceed(n) : return a DataFrame of date matching the date when case exceed n
     patch(patch) : patch the data 
+    
+    sum(), mean(), median(), std() :
+         Apply operation along rows and return a TimeSeries with guessed header 
+    
                     
     """
     @property
@@ -1068,6 +1194,104 @@ class TimeFrame(_DataSet):
         
     def patch(self, patch_data):
         patch(self, patch_data)
+    
+    def sum(self, name=None, axis=0, **kwargs):
+        """ Sum cases along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.sum, axis, name, kwargs)
+
+    def mean(self, name=None, axis=0, **kwargs):
+        """ maen cases along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.mean, axis, name, kwargs)
+
+    def median(self, name=None, axis=0, **kwargs):
+        """ Smedian cases along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.median, axis, name, kwargs)
+
+    def std(self, name=None, axis=0, **kwargs):
+        """ cases standard deviation along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.std, axis, name, kwargs)
+    
+    def min(self, name=None, axis=0, **kwargs):
+        """ min cases along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.min, axis, name, kwargs)
+    
+    def max(self, name=None, axis=0, **kwargs):
+        """ max cases along rows 
+        
+        Inputs
+        ------
+        name : optional, name of the time_series
+               If not given try to guess one from country or state if not mixed
+        axis : optional, axis=0 
+               change only to an other value to have the normal DataFrame behavior
+        
+        Output
+        ------
+        TimeSeries : Series like object 
+        """
+        return _run_operator(self, np.max, axis, name, kwargs)
+
+
     
     
 class TimeSeries(_DataRow):
@@ -1302,11 +1526,11 @@ class FitDataFrame(_DataSet):
     """
     @property
     def _constructor(self):
-        return TimeFrame
+        return FitDataFrame
     
     @property
     def _constructor_sliced(self):
-        return TimeSeries
+        return FitSeries
     
     def plot(self, *args, **kwargs):
         """ Plot the fit results, one plot line per state/country 
@@ -1434,6 +1658,44 @@ class FitSeries(_DataRow):
 #                                                                             #
 ###############################################################################    
 
+def _run_operator(data, op, axis, name, kwargs):
+    if not isinstance(data, TimeFrame):
+        return op(data, axis=axis, **kwargs)
+    if axis!=0 :
+        return op(DataFrame(get_cases(data)), axis=axis, **kwargs)
+    headers = get_header(data)
+    cases = get_cases(data)
+    index = cases.columns
+    collapsed_cases = op(np.asarray(cases), axis=0, **kwargs)
+    return _collaps_op(headers, collapsed_cases, index, name)
+
+def _collaps_op(headers, collapsed_cases, index, name):
+    countries =  set(headers[COUNTRY])
+    if len(countries)>1:
+        country = "_mixed_"
+    else:
+        country, = countries
+    
+    states = set(headers[STATE])
+    if len(states)>1:
+        state = "_mixed_"
+    else:
+        state, = states
+    
+    if name is None:
+        if state is not "_mixed_" and state==state:
+            name = state 
+        elif country is not "_mixed_":
+            name = "All "+country 
+    
+        
+    return TimeSeries(
+    [state, country]+list(collapsed_cases), 
+    index = [STATE,COUNTRY]+list(index), 
+    name=name    
+    )
+    
+
 def _reindex_data(data, data_col=4):
     # reindex to state name or country name if state is NaN
     # note a==a return False if a is nan
@@ -1460,7 +1722,7 @@ def _strdate2date(strdates):
     # assume all date are iddentical and return as is 
     if not len(strdates):  return  np.array([])
     
-    if isinstance(strdates[0], (date, int, np.int32, np.int64)):
+    if isinstance(strdates[0], DATA_COL_TYPE):
         return strdates
     
     out = []
@@ -1536,7 +1798,12 @@ def _parse_intervals_arg(arg):
         return DataFrame(data, columns=['name', 'start', 'end'])
     return arg
 
-
+def _concatenate(lst):
+    """ use only if every items is a Series """
+    if not len(lst):
+        return _DataSet()  
+    constructor = lst[0]._constructor_expanddim
+    return constructor(concat(lst, axis=1).T)
 
     
 def _compute_date_range(data, start=None, end=None, ndays=None):   
@@ -1546,11 +1813,11 @@ def _compute_date_range(data, start=None, end=None, ndays=None):
     
     if is_day_indexed(data):
         if start is None:
-            start = min(get_dates(data))
+            start = _min(get_dates(data))
         if ndays is not None:
             end = start+ndays-1
         elif end is None:
-            end = max(get_dates(data)) 
+            end = _max(get_dates(data)) 
         return start, end
             
         
@@ -1565,23 +1832,23 @@ def _compute_date_range(data, start=None, end=None, ndays=None):
         end = end.loc[data.name]['date']
     
     if start is None:
-        start= min(get_dates(data))
+        start= _min(get_dates(data))
     if end is None:
-        end = max(get_dates(data)) 
+        end = _max(get_dates(data)) 
     
     if isinstance(end, np.int):
         if (end)>=0:
-            end = min(get_dates(data)) + timedelta(days=end)
+            end = _min(get_dates(data)) + timedelta(days=end)
         else:
-            end = max(get_dates(data)) + timedelta(days=end+1)        
+            end = _max(get_dates(data)) + timedelta(days=end+1)        
     else:
         end = _parse_date(end)
     
     if isinstance(start, np.int):
         if start < 0:
-            start = max(get_dates(data)) + timedelta(days=start+1)
+            start = _max(get_dates(data)) + timedelta(days=start+1)
         else:
-            start = min(get_dates(data)) + timedelta(days=start)        
+            start = _min(get_dates(data)) + timedelta(days=start)        
     else:
         start = _parse_date(start)
     
@@ -1597,8 +1864,8 @@ def _get_subdata_range(data, start=None, end=None, ndays=None):
     start, end = _compute_date_range(data, start=start, end=end, ndays=ndays)
     
     d = get_dates(data) 
-    if start is None: start = min(d)
-    if end is None: end = max(d)
+    if start is None: start = _min(d)
+    if end is None: end = _max(d)
        
     t = (d>=start) & (d<=end)
     
@@ -1626,7 +1893,7 @@ def _header_cases_slices(data):
 def _get_days(dates, since=None, name=None):
     since = _parse_date(since)
     if since is None:        
-        since = min(dates)
+        since = _min(dates)
     
     elif isinstance(since, np.integer): 
         # this is an index
@@ -1634,8 +1901,24 @@ def _get_days(dates, since=None, name=None):
     days = [(d-since).days for d in dates]
     return days
     #return Series(days, index=dates, name=name+" "+str(since))
-    
 
+def _reordered(data):
+    if isinstance(data, Series):
+        cls = data.index
+    else:
+        cls = data.columns
+    
+    hcol = []    
+    dcol = []
+    for c in cls:
+        if isinstance(c, DATA_COL_TYPE):
+            dcol.append(c)
+        else:
+            hcol.append(c)    
+    dcol.sort()
+    cols = hcol+dcol
+    return data[cols]
+    
 def _itercases(data):
     """ iter over DataFrame rows 
     
@@ -1653,8 +1936,8 @@ def _dates2ticks(dates, step=None):
         dates = _gen_dates(*dates)              
     
     if step is None:
-        amp = (max(dates) - min(dates)).days
-        step = max(1, amp//10)
+        amp = (_max(dates) - _min(dates)).days
+        step = _max(1, amp//10)
         
     ticks = []
     pos_dates = []
@@ -1707,7 +1990,7 @@ def _gen_dates(mindate, maxdate):
 
 def _model_date_to_days(dates, start):
     if start is None:
-        start = min(dates)
+        start = _min(dates)
     if isinstance(dates[0], date):
         days = np.array([(d-start).days for d in dates])
     else:
