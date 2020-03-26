@@ -12,9 +12,9 @@ else:
     root = "./img"
 
 matplotlib.rcParams['figure.figsize'] = 12, 6 
-rcParams['axes.grid'] = True
-rcParams['axes.grid.which'] = 'both'
-rcParams['grid.alpha'] = 0.3
+matplotlib.rcParams['axes.grid'] = True
+matplotlib.rcParams['axes.grid.which'] = 'both'
+matplotlib.rcParams['grid.alpha'] = 0.3
 
          
 styles = {"France":{"color":"blue"}, 
