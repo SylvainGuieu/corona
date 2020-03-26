@@ -11,7 +11,12 @@ if len(sys.argv) > 1:
 else:
     root = "./img"
 
-matplotlib.rcParams['figure.figsize'] = 12, 6          
+matplotlib.rcParams['figure.figsize'] = 12, 6 
+rcParams['axes.grid'] = True
+rcParams['axes.grid.which'] = 'both'
+rcParams['grid.alpha'] = 0.3
+
+         
 styles = {"France":{"color":"blue"}, 
           "Italy":{"color":"green"}, 
           "Spain":{"color":"red"}, 
@@ -70,7 +75,6 @@ fit_result = subset.subset(start=-10).fit('2') # fit the last 10 days
 axes = subset.plot()
 fit_result.plot_model(("2020-03-15", "2020-04-01"), axes=axes)
 axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
-axes.grid( which='both')
 save('death_fit', axes.figure)
 
 plt.figure()
@@ -83,7 +87,6 @@ fit_result = subset.subset(start=s, end=e).fit('2') # fit the last 10 days
 axes = subset.plot()
 fit_result.plot_model( (s, 25), axes=axes)
 axes.set(yscale='log', xlabel="Days since %s cases"%c, ylabel="Death", title = "Death = A $2^{t/T}$ Fit between day %s and day %s since %s cases"%(s,e,c))
-axes.grid( which='both')
 [axes.axvline(x, color='k', linestyle=":") for x in (s,e)]
 save('death_fit_days', axes.figure)
 

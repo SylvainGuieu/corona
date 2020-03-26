@@ -5,6 +5,8 @@ The best way to have an overview is to check the [notebook](./corona.ipynb)
 
 ## install 
 
+**2020-03-26 Johns Hopkins series data links has been changed use version 0.1.5, or update `default_urls`**
+
 Using pip
 
 ```
@@ -26,7 +28,7 @@ Best to see the [notebook](./corona.ipynb) for examples.
 ## Some Key plots
 Some plot created by the coronapy_key_plot.py script in this repository
 
-Last Updates : 2020-03-24
+Last Updates : 2020-03-26
 
 ![](./img/confirmed.png)
 
