@@ -1,6 +1,7 @@
 from coronapy import load_data, set_default_styles
 import  matplotlib 
 from matplotlib.pylab import plt
+import numpy as np 
 import os 
 import sys 
 
@@ -45,7 +46,7 @@ names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US']
 names2 = ['France', 'Italy', 'Spain', 'US']
 
 plt_list = list(range(20))
-#plt_list = [8]
+#plt_list = [9]
 
 if 1 in plt_list:
     plt.figure()
@@ -136,3 +137,27 @@ if 8 in plt_list:
     axes.set(ylabel="Death / Confirmed [%]", xlabel="Date")
     save('death_ratio', axes.figure)
 
+if 9 in plt_list:
+    plt.figure()
+    origins = death.when_case_exceed(20)
+    subset = death.subset(names2)
+    # index by days and keep day from -10 to 50 
+    subset = subset.get_day_indexed(origins).subset(start=-10, end=60).cases # .cases is necessary to extract only data 
+    # np.asarray (or .to_numpy) is necessary to avoid that pandas is aligning data
+    sd = subset.iloc[:,1:] - np.asarray(subset.iloc[:,0:-1])  # to_numpy 
+    sd2 = sd.copy() # for smoothed data 
+    
+    # w = np.array([1, 1, 1, 1, 1, 1, 1]) # flat window 
+    #w = np.blackman(7)  # gauss like 
+    # w = np.hanning(9)
+    #w = np.hamming(9)
+    w = np.bartlett(7) # triangle shape 
+    
+    w = w/w.sum()
+    for name, row in sd.iterrows():
+        sd2.loc[name,:] = np.convolve(w, np.asarray(row), mode='same')
+                
+    axes = sd.plot(linestyle="None", marker="+")
+    sd2.plot(label=None, linestyle="solid").set(ylabel="Daily Death", xlabel="Day since 20 cases", title="Convolution of a 7 days window")
+    _ = plt.axes((0.16, 0.7, 0.1, 0.1), label="a", title="convol shape").plot(w, 'k-')
+    save('death_daily', axes.figure)

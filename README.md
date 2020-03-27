@@ -45,3 +45,6 @@ Last Updates : 2020-03-27
 ![](./img/death_T.png)
 
 ![](./img/death_ratio.png)
+
+![](./img/death_daily.png)
+
