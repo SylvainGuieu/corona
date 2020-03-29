@@ -6,6 +6,8 @@ import os
 import sys 
 
 matplotlib.use('Agg')
+plt_list = list(range(20))
+#plt_list = [9]
 
 if len(sys.argv) > 1:
     root = sys.argv[1]
@@ -45,8 +47,7 @@ death.patch(patch)
 names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US']
 names2 = ['France', 'Italy', 'Spain', 'US']
 
-plt_list = list(range(20))
-#plt_list = [9]
+
 
 if 1 in plt_list:
     plt.figure()
@@ -79,7 +80,7 @@ if 4 in plt_list:
     fit_result = subset.subset(start=-10).fit('2') # fit the last 10 days
     
     axes = subset.plot()
-    fit_result.plot_model(("2020-03-15", "2020-04-01"), axes=axes)
+    fit_result.plot_model((fit_result.loc['France','start'], "2020-04-10"), axes=axes)
     axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
     save('death_fit', axes.figure)
 
@@ -103,7 +104,7 @@ if 6 in plt_list:
     subset = confirmed.subset(names1)
     origin = confirmed.when_case_exceed(200)
     
-    data = subset.get_day_indexed(origin).subset(start=0, end=32)
+    data = subset.get_day_indexed(origin).subset(start=0, end=33)
     
     # intervals of 6 days every day 
     # the mindays keyword assure that their is always 6 points per sample (6 full days)
@@ -111,7 +112,7 @@ if 6 in plt_list:
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1.5,9), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1.5,11), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
     title="From confirmed case window=%d days, step=1 days"%(6)) 
     save('confirmed_T', axes.figure)
 
@@ -140,24 +141,24 @@ if 8 in plt_list:
 if 9 in plt_list:
     plt.figure()
     origins = death.when_case_exceed(20)
-    subset = death.subset(names2)
+    subset = death.subset(names1)
     # index by days and keep day from -10 to 50 
-    subset = subset.get_day_indexed(origins).subset(start=-10, end=60).cases # .cases is necessary to extract only data 
+    subset = subset.get_day_indexed(origins).subset(start=-10, end=60) # .cases is necessary to extract only data 
     # np.asarray (or .to_numpy) is necessary to avoid that pandas is aligning data
-    sd = subset.iloc[:,1:] - np.asarray(subset.iloc[:,0:-1])  # to_numpy 
+    sd = subset.cases.iloc[:,1:] - np.asarray(subset.cases.iloc[:,0:-1])  # to_numpy 
     sd2 = sd.copy() # for smoothed data 
     
-    # w = np.array([1, 1, 1, 1, 1, 1, 1]) # flat window 
-    #w = np.blackman(7)  # gauss like 
-    # w = np.hanning(9)
-    #w = np.hamming(9)
-    w = np.bartlett(7) # triangle shape 
+    ws = 7 # window size
+    # window type
+    wt = "triang" # None "bartlett" "blackman" "triang" "boxcar" "hamming" "parzen" "nuttall" "barthann"
     
-    w = w/w.sum()
-    for name, row in sd.iterrows():
-        sd2.loc[name,:] = np.convolve(w, np.asarray(row), mode='same')
-                
+    rolling = sd.cases.rolling(ws, win_type=wt, center=True, axis=1)
+    w = np.ones((ws,)) if wt is None else rolling._get_window(win_type=wt)
+    
+    # put back the header part for legend 
+    sd = subset.header.join(sd)
+    
     axes = sd.plot(linestyle="None", marker="+")
-    sd2.plot(label=None, linestyle="solid").set(ylabel="Daily Death", xlabel="Day since 20 cases", title="Convolution of a 7 days window")
-    _ = plt.axes((0.16, 0.7, 0.1, 0.1), label="a", title="convol shape").plot(w, 'k-')
+    rolling.mean().plot(label=None,linestyle="solid").set(ylabel="Daily Death", xlabel="Day since 20 cases", title="Convolution of a %r  %d days window"%(wt,ws))
+    _ = plt.axes((0.16, 0.7, 0.1, 0.1), title="convol shape").plot(w, 'k-')
     save('death_daily', axes.figure)

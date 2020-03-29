@@ -984,6 +984,7 @@ class TimeFrame(_DataSet):
     - cases:  Return only the time series parts of the data (for math operation) and
               drop the "header" part. 
     - header: Return only the "header" part
+    - daily_cases: number of cases per day TimeFrame
     
     Methods
     -------
@@ -1027,6 +1028,11 @@ class TimeFrame(_DataSet):
     def header(self):
         return get_header(self)
     
+    @property
+    def daily_cases(self):
+        cases = self.cases
+        return cases.iloc[:,1:] - np.asarray(cases.iloc[:,0:-1])
+        
     def get_days(self, day_zero=None):
         """ Get day numbers from a list of origin dates
         
@@ -1303,7 +1309,7 @@ class TimeSeries(_DataRow):
     - cases:  Return only the time series parts of the data (for operation) and
               drop the "header" part. 
     - header: Return only the "header" part
-    
+    - daily_cases : number of cases per day TimeSeries
     Methods
     -------
     get_days(day_zero): return a Series of days from given origin Date
@@ -1340,6 +1346,12 @@ class TimeSeries(_DataRow):
     @property
     def header(self):
         return get_header(self)
+    
+    @property
+    def daily_cases(self):
+        cases = self.cases
+        return cases[1:] - np.asarray(cases[0:-1])
+    
     
     def get_days(self, day_zero=None):
         """ Get day numbers from a list of origin dates

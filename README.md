@@ -28,7 +28,7 @@ Best to see the [notebook](./corona.ipynb) for examples.
 ## Some Key plots
 Some plot created by the coronapy_key_plot.py script in this repository
 
-Last Updates : 2020-03-27
+Last Updates : 2020-03-29
 
 ![](./img/confirmed.png)
 
