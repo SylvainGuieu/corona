@@ -48,3 +48,5 @@ Last Updates : 2020-03-29
 
 ![](./img/death_daily.png)
 
+![daily death over total](./img/daily_total_date.mp4)
+
