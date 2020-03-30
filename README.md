@@ -50,3 +50,5 @@ Last Updates : 2020-03-29
 
 ![daily death over total](./img/daily_total_date.gif)
 
+![daily confirmed over total](./img/daily_total_date_confirmed.gif)
+
