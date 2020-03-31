@@ -26,7 +26,7 @@ LAT, LONG = "Lat", "Long"
 
 # type of the columns considered as "data" instead of header
 DATA_COL_TYPE = (date, int, np.int32, np.int64)
-
+DAY_COL_TYPE = (int, np.int32, np.int64)
 ###############################################################################
 #          ____  _   _ ____  _     ___ ____   _____ _   _ _   _  ____         #
 #         |  _ \| | | | __ )| |   |_ _/ ___| |  ___| | | | \ | |/ ___|        #
@@ -256,7 +256,13 @@ def when_case_exceed(data, n):
 
 def is_day_indexed(data):
     """ True if data is indexed by day number instead of date """
-    return 'day_zero' in data
+    if 'day_zero' in data: 
+        return True
+    dates = get_dates(data)
+    if len(dates):
+        return isinstance(dates[0], DAY_COL_TYPE)
+    return False
+    #return 'day_zero' in data
 def is_model(data):
     """ True if time sery data was created by a model """
     return ('T' in data) and ('start' in data)
@@ -2072,9 +2078,15 @@ def _parse_log(log, value):
 def _labeler(data):
     if is_day_indexed(data):
         if is_model(data):
-            return lambda r:"{r.name} {r[day_zero]} {r[start]} -> {r[end]} T={r[T]:.2f}".format(r=r)
+            if "day_zero" in data:
+                return lambda r:"{r.name} {r[day_zero]} {r[start]} -> {r[end]} T={r[T]:.2f}".format(r=r)
+            else:
+                return lambda r:"{r.name} {r[start]} -> {r[end]} T={r[T]:.2f}".format(r=r)                
         else:
-            return lambda r:"{r.name} {r[day_zero]}".format(r=r)
+            if "day_zero" in data:
+                return lambda r:"{r.name} {r[day_zero]}".format(r=r)
+            else:
+                return lambda r:"{r.name}".format(r=r)
     else:
         if is_model(data):
             return lambda r:"{r.name} {r[start]} -> {r[end]} T={r[T]:.2f}".format(r=r)
