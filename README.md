@@ -52,3 +52,4 @@ Last Updates : 2020-04-02
 
 ![daily confirmed over total](./img/daily_total_date_confirmed.gif)
 
+![daily confirmed over total](./img/death_over_total.gif)
