@@ -126,7 +126,7 @@ if 7 in plt_list:
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1,12), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1,13), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
     title="From death case window=%d days, step=1 days"%(6))  
     save('death_T', axes.figure)
 
