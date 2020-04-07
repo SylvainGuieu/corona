@@ -120,13 +120,13 @@ if 7 in plt_list:
     plt.figure()
     subset = death.subset(names1)
     origin = death.when_case_exceed(20)
-    data = subset.get_day_indexed(origin).subset(start=0, end=37)
+    data = subset.get_day_indexed(origin).subset(start=0, end=38)
     
     intervals = data.intervals(window=6, step=1, mindays=6)
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1,13), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1,16), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
     title="From death case window=%d days, step=1 days"%(6))  
     save('death_T', axes.figure)
 
