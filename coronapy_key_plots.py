@@ -104,7 +104,7 @@ if 6 in plt_list:
     subset = confirmed.subset(names1)
     origin = confirmed.when_case_exceed(200)
     
-    data = subset.get_day_indexed(origin).subset(start=0, end=35)
+    data = subset.get_day_indexed(origin).subset(start=0, end=40)
     
     # intervals of 6 days every day 
     # the mindays keyword assure that their is always 6 points per sample (6 full days)
@@ -112,7 +112,7 @@ if 6 in plt_list:
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1.5,13), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1.5,20), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
     title="From confirmed case window=%d days, step=1 days"%(6)) 
     save('confirmed_T', axes.figure)
 
@@ -120,13 +120,13 @@ if 7 in plt_list:
     plt.figure()
     subset = death.subset(names1)
     origin = death.when_case_exceed(20)
-    data = subset.get_day_indexed(origin).subset(start=0, end=38)
+    data = subset.get_day_indexed(origin).subset(start=0, end=40)
     
     intervals = data.intervals(window=6, step=1, mindays=6)
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1,16), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1,20), xlabel="Days since 20 cases", ylabel="Doubling Time T in days", 
     title="From death case window=%d days, step=1 days"%(6))  
     save('death_T', axes.figure)
 
