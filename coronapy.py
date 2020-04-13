@@ -2096,7 +2096,7 @@ def _labeler(data):
 def _styler(name, style, styles):
     return dict(style, **styles.get(name, style))
 
-_lsts = ["solid", "dotted", "dashed", "dashdot", "losely dotted", "losely dashed", "losely dashdotted"][::-1]
+_lsts = ["solid", "dotted", "dashed", "dashdot", (0, (1, 10)), (0, (5, 10)), (0, (3, 10, 1, 10))][::-1]
 def _next_linestyle(name, axes):
     try:
         linestyle = axes._linestyles

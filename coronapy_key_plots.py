@@ -80,7 +80,7 @@ if 4 in plt_list:
     fit_result = subset.subset(start=-10).fit('2') # fit the last 10 days
     
     axes = subset.plot()
-    fit_result.plot_model((fit_result.loc['France','start'], "2020-04-10"), axes=axes)
+    fit_result.plot_model((fit_result.loc['France','start'], "2020-04-20"), axes=axes)
     axes.set(yscale='log', xlabel="Date", ylabel="Death", title = "Death cases = A $2^{t/T}$")
     save('death_fit', axes.figure)
 
@@ -89,7 +89,7 @@ if 5 in plt_list:
     subset = death.subset(names1)
     s, e, c = 6,13, 20
     origin = death.when_case_exceed(c)
-    subset = subset.get_day_indexed(origin).subset(start=0, end=30)
+    subset = subset.get_day_indexed(origin).subset(start=0, end=45)
     
     fit_result = subset.subset(start=s, end=e).fit('2') # fit the last 10 days
     axes = subset.plot()
@@ -104,7 +104,7 @@ if 6 in plt_list:
     subset = confirmed.subset(names1)
     origin = confirmed.when_case_exceed(200)
     
-    data = subset.get_day_indexed(origin).subset(start=0, end=40)
+    data = subset.get_day_indexed(origin).subset(start=0, end=45)
     
     # intervals of 6 days every day 
     # the mindays keyword assure that their is always 6 points per sample (6 full days)
@@ -112,7 +112,7 @@ if 6 in plt_list:
     result = data.fit_intervals(intervals)
     # first argument datekey can be 'start', 'end', 'center' define which date to plot
     axes = result.plot(datekey='end', style={'marker':'+'})
-    axes.set(ylim=(1.5,20), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
+    axes.set(ylim=(1.5,23), xlabel="Days since 200 cases", ylabel="Doubling Time T in days", 
     title="From confirmed case window=%d days, step=1 days"%(6)) 
     save('confirmed_T', axes.figure)
 
@@ -120,7 +120,7 @@ if 7 in plt_list:
     plt.figure()
     subset = death.subset(names1)
     origin = death.when_case_exceed(20)
-    data = subset.get_day_indexed(origin).subset(start=0, end=40)
+    data = subset.get_day_indexed(origin).subset(start=0, end=45)
     
     intervals = data.intervals(window=6, step=1, mindays=6)
     result = data.fit_intervals(intervals)
