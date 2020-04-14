@@ -50,7 +50,7 @@ patch = [
 death.patch(patch)
 names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US', 'Korea, South', 'Japan']
 
-mdates = range(2, 40)
+mdates = range(2, 46)
 
 
 def anim_daily_total(data, file_name, kind="cases", minlim=1):
