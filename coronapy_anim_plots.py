@@ -48,7 +48,7 @@ patch = [
     ('France', '2020-03-19', 372)
 ]
 death.patch(patch)
-names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US', 'Korea, South', 'Japan']
+names1 = ['France', 'Italy', 'Spain', 'Hubei', 'US', 'Korea, South', 'Japan', 'United Kingdom']
 
 mdates = range(2, 46)
 

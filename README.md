@@ -28,7 +28,7 @@ Best to see the [notebook](./corona.ipynb) for examples.
 ## Some Key plots
 Some plot created by the coronapy_key_plot.py script in this repository, the animated gif and mp4 (in img/) is done with coronapy_anim.py  
 
-Last Updates : 2020-04-05
+Last Updates : 2020-04-15
 
 ![](./img/confirmed.png)
 
