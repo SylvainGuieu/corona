@@ -110,7 +110,7 @@ if 3 in plt_list:
     FFMpegWriter = manimation.writers['ffmpeg']
     metadata = dict(title='Corona virus temp evolution', artist='Sylvain Guieu',
                     comment='https://github.com/SylvainGuieu/corona')
-    writer = FFMpegWriter(fps=4, metadata=metadata)
+    writer = FFMpegWriter(fps=2, metadata=metadata)
     
     # from coronapy import _default_styles
     subset = death.subset([ 'Italy', 'Spain', 'France', 'Hubei', 'US', 'Japan','Korea, South'])
