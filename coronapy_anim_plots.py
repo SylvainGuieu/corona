@@ -185,7 +185,7 @@ if 3 in plt_list:
             axes.set(ylim=(-0.01,0.3), xlim=(0, 25000), yscale="linear", xscale="linear", xlabel="Totala Death", ylabel="Daily Death / Total", 
             title="Fit of max %s last points"%nfit
             )
-            axes2.set(xlim=(0,40), ylim=(0,25000), xlabel="Day since 5 cases", ylabel="Projection of Number of Death")
+            axes2.set(xlim=(0,55), ylim=(0,30000), xlabel="Day since 5 cases", ylabel="Projection of Number of Death")
             writer.grab_frame()
     
     subprocess.run(f"ffmpeg -y -i {root}/{file_name}.mp4 -vf \"fps=10,scale=800:-1:flags=lanczos\" -loop 999 {root}/{file_name}.gif", shell=True)
