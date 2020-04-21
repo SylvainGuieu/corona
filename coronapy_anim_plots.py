@@ -12,7 +12,7 @@ import subprocess
 
 matplotlib.use('Agg')
 plt_list = list(range(20))
-plt_list = [3]
+#plt_list = [3]
 
 if len(sys.argv) > 1:
     root = sys.argv[1]
