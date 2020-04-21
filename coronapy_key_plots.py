@@ -104,7 +104,7 @@ if 6 in plt_list:
     subset = confirmed.subset(names1)
     origin = confirmed.when_case_exceed(200)
     
-    data = subset.get_day_indexed(origin).subset(start=0, end=55)
+    data = subset.get_day_indexed(origin).subset(start=0, end=60)
     
     # intervals of 6 days every day 
     # the mindays keyword assure that their is always 6 points per sample (6 full days)
@@ -120,7 +120,7 @@ if 7 in plt_list:
     plt.figure()
     subset = death.subset(names1)
     origin = death.when_case_exceed(20)
-    data = subset.get_day_indexed(origin).subset(start=0, end=55)
+    data = subset.get_day_indexed(origin).subset(start=0, end=60)
     
     intervals = data.intervals(window=6, step=1, mindays=6)
     result = data.fit_intervals(intervals)
