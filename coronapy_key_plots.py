@@ -60,7 +60,7 @@ if 2 in plt_list:
     plt.figure()
     origins = confirmed.when_case_exceed(200) # the dates from when at least 100 case detected
     subset = confirmed.subset(names1)
-    axes = subset.get_day_indexed(day_zero=origins).subset(start=-10, end=50).plot()
+    axes = subset.get_day_indexed(day_zero=origins).subset(start=-10, end=65).plot()
     axes.set(yscale="log", ylabel="Confirmed case", xlabel="Days since at least 200 cases")
     save('confirmed_days_200', axes.figure)
 
@@ -89,7 +89,7 @@ if 5 in plt_list:
     subset = death.subset(names1)
     s, e, c = 6,13, 20
     origin = death.when_case_exceed(c)
-    subset = subset.get_day_indexed(origin).subset(start=0, end=55)
+    subset = subset.get_day_indexed(origin).subset(start=0, end=65)
     
     fit_result = subset.subset(start=s, end=e).fit('2') # fit the last 10 days
     axes = subset.plot()
@@ -104,7 +104,7 @@ if 6 in plt_list:
     subset = confirmed.subset(names1)
     origin = confirmed.when_case_exceed(200)
     
-    data = subset.get_day_indexed(origin).subset(start=0, end=60)
+    data = subset.get_day_indexed(origin).subset(start=0, end=65)
     
     # intervals of 6 days every day 
     # the mindays keyword assure that their is always 6 points per sample (6 full days)
@@ -120,7 +120,7 @@ if 7 in plt_list:
     plt.figure()
     subset = death.subset(names1)
     origin = death.when_case_exceed(20)
-    data = subset.get_day_indexed(origin).subset(start=0, end=60)
+    data = subset.get_day_indexed(origin).subset(start=0, end=65)
     
     intervals = data.intervals(window=6, step=1, mindays=6)
     result = data.fit_intervals(intervals)
@@ -143,7 +143,7 @@ if 9 in plt_list:
     origins = death.when_case_exceed(20)
     subset = death.subset(names1)
     # index by days and keep day from -10 to 50 
-    subset = subset.get_day_indexed(origins).subset(start=-10, end=60) # .cases is necessary to extract only data 
+    subset = subset.get_day_indexed(origins).subset(start=-10, end=65) # .cases is necessary to extract only data 
     # np.asarray (or .to_numpy) is necessary to avoid that pandas is aligning data
     sd = subset.cases.iloc[:,1:] - np.asarray(subset.cases.iloc[:,0:-1])  # to_numpy 
     sd2 = sd.copy() # for smoothed data 
